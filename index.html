@@ -238,15 +238,17 @@
 
         function addDayEntry() {
             dayCount++;
-            const today = new Date().toISOString().split('T')[0]; // Get today's date in YYYY-MM-DD format
+            const today = new Date();
+            const formattedDate = formatDate(today);
+            const dayName = getDayName(today);
             const dayEntryDiv = document.createElement('div');
             dayEntryDiv.className = 'day-entry';
             dayEntryDiv.id = 'day-entry-' + dayCount;
             dayEntryDiv.innerHTML = `
-            <h3>Day ${dayCount}</h3>
+            <h3>Day ${dayCount} - ${dayName}</h3>
             <label>
                 Date:
-                <input type="date" class="date-input" value="${today}">
+                <input type="date" class="date-input" value="${today.toISOString().split('T')[0]}" onchange="updateDayName(this, ${dayCount})">
             </label>
             <label>
                 Start Time:
@@ -271,6 +273,25 @@
 
             // Scroll to the new entry
             dayEntryDiv.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function formatDate(date) {
+            const day = String(date.getDate()).padStart(2, '0');
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const year = date.getFullYear();
+            return `${day}-${month}-${year}`;
+        }
+
+        function getDayName(date) {
+            const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+            return days[date.getDay()];
+        }
+
+        function updateDayName(dateInput, dayNumber) {
+            const date = new Date(dateInput.value);
+            const dayName = getDayName(date);
+            const h3 = dateInput.closest('.day-entry').querySelector('h3');
+            h3.textContent = `Day ${dayNumber} - ${dayName}`;
         }
 
         function removeDayEntry(id) {
@@ -369,9 +390,11 @@
         `;
 
             records.forEach(record => {
+                const [year, month, day] = record.date.split('-');
+                const formattedDate = `${day}-${month}-${year}`;
                 tableHTML += `
                 <tr>
-                    <td>${record.date}</td>
+                    <td>${formattedDate}</td>
                     <td>${record.startTime}</td>
                     <td>${record.endTime}</td>
                     <td>${record.location}</td>
