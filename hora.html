@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Stack Invoice</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-image: url('download.jpeg');
+            /* Background image */
+            background-size: cover;
+            background-position: center;
+            color: #FFFFFF;
+            margin: 0;
+            padding: 0;
+        }
+
+        header {
+            background-color: rgba(0, 0, 0, 0.6);
+            /* Semi-transparent overlay */
+            color: #FFFFFF;
+            padding: 20px;
+            text-align: center;
+            position: relative;
+        }
+
+        header img {
+            position: absolute;
+            left: 20px;
+            top: 10px;
+            height: 60px;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 36px;
+        }
+
+        .container {
+            padding: 20px;
+            background-color: rgba(0, 0, 0, 0.6);
+            /* Semi-transparent overlay */
+        }
+
+        .rate-inputs,
+        .day-entry,
+        #summary {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: rgba(255, 255, 255, 0.9);
+            /* Semi-transparent white background */
+            padding: 15px;
+            border-radius: 5px;
+            color: #003366;
+            margin-bottom: 20px;
+        }
+
+        .day-entry {
+            border: 1px solid #ccc;
+        }
+
+        .day-entry h3 {
+            margin-top: 0;
+        }
+
+        label {
+            display: block;
+            margin-top: 10px;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        input[type="time"],
+        input[type="date"] {
+            width: 100%;
+            padding: 5px;
+            box-sizing: border-box;
+            border-radius: 3px;
+            border: 1px solid #ccc;
+        }
+
+        input[type="checkbox"] {
+            margin-left: 5px;
+        }
+
+        .button {
+            display: block;
+            margin: 20px auto;
+            background-color: #003366;
+            color: #FFFFFF;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .button:hover {
+            background-color: #002244;
+        }
+
+        .remove-day {
+            background-color: #c62828;
+            color: #FFFFFF;
+            padding: 5px 10px;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .remove-day:hover {
+            background-color: #b71c1c;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 30px;
+            background-color: #FFFFFF;
+            color: #003366;
+        }
+
+        th,
+        td {
+            border: 1px solid #ccc;
+            padding: 10px;
+            text-align: center;
+        }
+
+        th {
+            background-color: #75AADB;
+            color: #FFFFFF;
+        }
+
+        #total-summary {
+            margin-top: 20px;
+            text-align: right;
+            color: #000000;
+            /* Changed to black */
+            font-size: 18px;
+        }
+
+        /* Removed the footer to prevent obstruction */
+        /* Responsive Design */
+        @media (max-width: 600px) {
+
+            body,
+            .container {
+                padding: 10px;
+            }
+
+            h1 {
+                font-size: 28px;
+            }
+
+            .button {
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <img src="escudo.jpeg" alt="Argentina Logo">
+        <h1>Stack Invoice</h1>
+    </header>
+
+    <div class="container">
+        <div class="rate-inputs">
+            <label>
+                Weekday Rate:
+                <input type="number" id="weekday-rate" placeholder="Enter your weekday rate">
+            </label>
+            <label>
+                Weekend Rate:
+                <input type="number" id="weekend-rate" placeholder="Enter your weekend rate">
+            </label>
+        </div>
+
+        <div id="day-entries"></div>
+
+        <button id="add-day" class="button">Add Day</button>
+
+        <button id="calculate" class="button">Calculate Invoice</button>
+
+        <div id="summary"></div>
+    </div>
+
+    <!-- Footer has been removed to improve visibility -->
+
+    <script>
+        let dayCount = 0;
+
+        document.getElementById('add-day').addEventListener('click', addDayEntry);
+
+        // Add the first day entry automatically
+        addDayEntry();
+
+        function addDayEntry() {
+            dayCount++;
+            const dayEntryDiv = document.createElement('div');
+            dayEntryDiv.className = 'day-entry';
+            dayEntryDiv.id = 'day-entry-' + dayCount;
+            dayEntryDiv.innerHTML = `
+            <h3>Day ${dayCount}</h3>
+            <label>
+                Date:
+                <input type="date" class="date-input">
+            </label>
+            <label>
+                Start Time:
+                <input type="time" class="start-time-input">
+            </label>
+            <label>
+                End Time:
+                <input type="time" class="end-time-input">
+            </label>
+            <label>
+                Location:
+                <input type="text" class="location-input" placeholder="Enter the location">
+            </label>
+            <label>
+                Took Lunch:
+                <input type="checkbox" class="lunch-input">
+            </label>
+            <button class="remove-day" onclick="removeDayEntry(${dayCount})">Remove Day</button>
+        `;
+            const dayEntriesDiv = document.getElementById('day-entries');
+            dayEntriesDiv.appendChild(dayEntryDiv);
+
+            // Scroll to the new entry
+            dayEntryDiv.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function removeDayEntry(id) {
+            const dayEntryDiv = document.getElementById('day-entry-' + id);
+            dayEntryDiv.parentNode.removeChild(dayEntryDiv);
+        }
+
+        document.getElementById('calculate').addEventListener('click', calculateInvoice);
+
+        function calculateInvoice() {
+            const weekdayRate = parseFloat(document.getElementById('weekday-rate').value);
+            const weekendRate = parseFloat(document.getElementById('weekend-rate').value);
+            const dayEntries = document.querySelectorAll('.day-entry');
+
+            if (isNaN(weekdayRate) || isNaN(weekendRate)) {
+                alert('Please enter valid rates for weekdays and weekends.');
+                return;
+            }
+
+            let records = [];
+            let totalHoursWorked = 0;
+            let totalAmount = 0;
+
+            for (let i = 0; i < dayEntries.length; i++) {
+                const entry = dayEntries[i];
+                const dateInput = entry.querySelector('.date-input');
+                const dateValue = dateInput.value;
+                const date = new Date(dateValue);
+                const startTime = entry.querySelector('.start-time-input').value;
+                const endTime = entry.querySelector('.end-time-input').value;
+                const location = entry.querySelector('.location-input').value;
+                const lunchTaken = entry.querySelector('.lunch-input').checked;
+
+                if (!dateValue || !startTime || !endTime || !location) {
+                    alert('Please fill out all fields for each day.');
+                    return;
+                }
+
+                const startDateTime = new Date(`${date.toDateString()} ${startTime}`);
+                const endDateTime = new Date(`${date.toDateString()} ${endTime}`);
+
+                let totalHours = (endDateTime - startDateTime) / (1000 * 60 * 60);
+
+                if (totalHours < 0) {
+                    totalHours += 24; // Adjust for overnight shifts
+                }
+
+                if (lunchTaken) {
+                    totalHours -= 0.5;
+                }
+
+                const dayOfWeek = date.getDay(); // 0 (Sun) to 6 (Sat)
+                const rate = (dayOfWeek === 0 || dayOfWeek === 6) ? weekendRate : weekdayRate;
+                const dayPrice = totalHours * rate;
+
+                totalHoursWorked += totalHours;
+                totalAmount += dayPrice;
+
+                records.push({
+                    date: date.toISOString().split('T')[0],
+                    startTime: startTime,
+                    endTime: endTime,
+                    location: location,
+                    totalHours: totalHours.toFixed(2),
+                    rate: rate.toFixed(2),
+                    dayPrice: dayPrice.toFixed(2)
+                });
+            }
+
+            displaySummary(records, totalHoursWorked.toFixed(2), totalAmount.toFixed(2));
+        }
+
+        function displaySummary(records, totalHoursWorked, totalAmount) {
+            let summaryDiv = document.getElementById('summary');
+            summaryDiv.innerHTML = '';
+
+            if (records.length === 0) {
+                summaryDiv.innerHTML = '<p>No records to display.</p>';
+                return;
+            }
+
+            let tableHTML = `
+            <table>
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Start</th>
+                        <th>End</th>
+                        <th>Location</th>
+                        <th>Hours Worked</th>
+                        <th>Rate</th>
+                        <th>Amount</th>
+                    </tr>
+                </thead>
+                <tbody>
+        `;
+
+            records.forEach(record => {
+                tableHTML += `
+                <tr>
+                    <td>${record.date}</td>
+                    <td>${record.startTime}</td>
+                    <td>${record.endTime}</td>
+                    <td>${record.location}</td>
+                    <td>${record.totalHours}</td>
+                    <td>${record.rate}</td>
+                    <td>${record.dayPrice}</td>
+                </tr>
+            `;
+            });
+
+            tableHTML += `
+                </tbody>
+            </table>
+            <div id="total-summary">
+                <p><strong>Total Hours Worked:</strong> ${totalHoursWorked}</p>
+                <p><strong>Total Amount:</strong> ${totalAmount}</p>
+            </div>
+        `;
+
+            summaryDiv.innerHTML = tableHTML;
+
+            // Scroll to the summary
+            summaryDiv.scrollIntoView({ behavior: 'smooth' });
+        }
+    </script>
+
+</body>
+
+</html>
