@@ -3,6 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Stack Invoice</title>
     <style>
         body {
@@ -142,7 +143,6 @@
             font-size: 18px;
         }
 
-        /* Removed the footer to prevent obstruction */
         /* Responsive Design */
         @media (max-width: 600px) {
 
@@ -152,11 +152,47 @@
             }
 
             h1 {
-                font-size: 28px;
+                font-size: 24px;
+            }
+
+            header img {
+                height: 40px;
+                top: 50%;
+                transform: translateY(-50%);
+            }
+
+            .rate-inputs,
+            .day-entry,
+            #summary {
+                padding: 10px;
+            }
+
+            input[type="text"],
+            input[type="number"],
+            input[type="time"],
+            input[type="date"] {
+                font-size: 16px;
+                padding: 8px;
             }
 
             .button {
+                font-size: 16px;
+                padding: 12px 20px;
+                width: 100%;
+                margin: 10px 0;
+            }
+
+            table {
                 font-size: 14px;
+            }
+
+            th,
+            td {
+                padding: 8px 5px;
+            }
+
+            #total-summary {
+                font-size: 16px;
             }
         }
     </style>
