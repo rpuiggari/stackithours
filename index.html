@@ -238,6 +238,7 @@
 
         function addDayEntry() {
             dayCount++;
+            const today = new Date().toISOString().split('T')[0]; // Get today's date in YYYY-MM-DD format
             const dayEntryDiv = document.createElement('div');
             dayEntryDiv.className = 'day-entry';
             dayEntryDiv.id = 'day-entry-' + dayCount;
@@ -245,15 +246,15 @@
             <h3>Day ${dayCount}</h3>
             <label>
                 Date:
-                <input type="date" class="date-input">
+                <input type="date" class="date-input" value="${today}">
             </label>
             <label>
                 Start Time:
-                <input type="time" class="start-time-input">
+                <input type="time" class="start-time-input" value="06:00">
             </label>
             <label>
                 End Time:
-                <input type="time" class="end-time-input">
+                <input type="time" class="end-time-input" value="16:00">
             </label>
             <label>
                 Location:
