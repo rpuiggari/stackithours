@@ -35,7 +35,37 @@
 
         h1 {
             margin: 0;
-            font-size: 36px;
+            font-size: 48px;
+            font-family: 'Poppins', sans-serif;
+            color: #3498db;
+            text-shadow:
+                0 1px 0 #2980b9,
+                0 2px 0 #2573a7,
+                0 3px 0 #216594,
+                0 4px 0 #1b5881,
+                0 5px 0 #154b6e,
+                0 6px 1px rgba(0, 0, 0, .1),
+                0 0 5px rgba(0, 0, 0, .1),
+                0 1px 3px rgba(0, 0, 0, .3),
+                0 3px 5px rgba(0, 0, 0, .2),
+                0 5px 10px rgba(0, 0, 0, .25),
+                0 10px 10px rgba(0, 0, 0, .2),
+                0 20px 20px rgba(0, 0, 0, .15);
+            animation: float 6s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0% {
+                transform: translateY(0px) rotate(0deg);
+            }
+
+            50% {
+                transform: translateY(-20px) rotate(2deg);
+            }
+
+            100% {
+                transform: translateY(0px) rotate(0deg);
+            }
         }
 
         .container {
@@ -195,14 +225,40 @@
                 font-size: 16px;
             }
         }
+
+        .date-input-display {
+            cursor: pointer;
+        }
+
+        footer {
+            background-color: rgba(0, 0, 0, 0.6);
+            color: #FFFFFF;
+            text-align: center;
+            padding: 10px 0;
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+        }
+
+        footer p {
+            margin: 0;
+            font-style: italic;
+        }
+
+        /* Adjust the container to account for the footer */
+        .container {
+            padding-bottom: 50px;
+            /* Adjust this value based on your footer's height */
+        }
     </style>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600&display=swap" rel="stylesheet">
 </head>
 
 <body>
 
     <header>
         <img src="escudo.jpeg" alt="Argentina Logo">
-        <h1>Stack Invoice</h1>
+        <h1 id="dynamic-title">Stack Invoice</h1>
     </header>
 
     <div class="container">
@@ -226,11 +282,12 @@
         <div id="summary"></div>
     </div>
 
-    <!-- Footer has been removed to improve visibility -->
+    <footer>
+        <p>Keep calm and anda palla bobo</p>
+    </footer>
 
     <script>
         let dayCount = 0;
-        let lastAddedDate = null;
         let lastEnteredValues = {
             startTime: "06:00",
             endTime: "16:00",
@@ -249,9 +306,16 @@
 
             if (dayCount === 1) {
                 defaultDate = getPreviousTuesday();
-            } else if (lastAddedDate) {
-                defaultDate = new Date(lastAddedDate);
-                defaultDate.setDate(defaultDate.getDate() + 1);
+            } else {
+                // Find the last entered date
+                const dateInputs = document.querySelectorAll('.date-input-hidden');
+                if (dateInputs.length > 0) {
+                    const lastEnteredDate = new Date(dateInputs[dateInputs.length - 1].value);
+                    defaultDate = new Date(lastEnteredDate);
+                    defaultDate.setDate(defaultDate.getDate() + 1);
+                } else {
+                    defaultDate = new Date();
+                }
 
                 // Update lastEnteredValues with the values from the previous entry
                 const lastEntry = document.querySelector('.day-entry:last-child');
@@ -261,44 +325,41 @@
                     lastEnteredValues.location = lastEntry.querySelector('.location-input').value;
                     lastEnteredValues.lunchTaken = lastEntry.querySelector('.lunch-input').checked;
                 }
-            } else {
-                defaultDate = new Date();
             }
 
             const formattedDate = formatDate(defaultDate);
+            const isoDate = defaultDate.toISOString().split('T')[0]; // YYYY-MM-DD format for the hidden input
             const dayName = getDayName(defaultDate);
             const dayEntryDiv = document.createElement('div');
             dayEntryDiv.className = 'day-entry';
             dayEntryDiv.id = 'day-entry-' + dayCount;
             dayEntryDiv.innerHTML = `
-            <h3>Day ${dayCount} - ${dayName}</h3>
-            <label>
-                Date:
-                <input type="text" class="date-input" value="${formattedDate}" onchange="updateDayName(this, ${dayCount})">
-            </label>
-            <label>
-                Start Time:
-                <input type="time" class="start-time-input" value="${lastEnteredValues.startTime}">
-            </label>
-            <label>
-                End Time:
-                <input type="time" class="end-time-input" value="${lastEnteredValues.endTime}">
-            </label>
-            <label>
-                Location:
-                <input type="text" class="location-input" value="${lastEnteredValues.location}" placeholder="Enter the location">
-            </label>
-            <label>
-                Took Lunch:
-                <input type="checkbox" class="lunch-input" ${lastEnteredValues.lunchTaken ? 'checked' : ''}>
-            </label>
-            <button class="remove-day" onclick="removeDayEntry(${dayCount})">Remove Day</button>
-        `;
+                <h3>Day ${dayCount} - ${dayName}</h3>
+                <label>
+                    Date:
+                    <input type="text" class="date-input-display" value="${formattedDate}" readonly>
+                    <input type="date" class="date-input-hidden" value="${isoDate}" style="display: none;" onchange="updateDisplayDate(this, ${dayCount})">
+                </label>
+                <label>
+                    Start Time:
+                    <input type="time" class="start-time-input" value="${lastEnteredValues.startTime}">
+                </label>
+                <label>
+                    End Time:
+                    <input type="time" class="end-time-input" value="${lastEnteredValues.endTime}">
+                </label>
+                <label>
+                    Location:
+                    <input type="text" class="location-input" value="${lastEnteredValues.location}" placeholder="Enter the location">
+                </label>
+                <label>
+                    Took Lunch:
+                    <input type="checkbox" class="lunch-input" ${lastEnteredValues.lunchTaken ? 'checked' : ''}>
+                </label>
+                <button class="remove-day" onclick="removeDayEntry(${dayCount})">Remove Day</button>
+            `;
             const dayEntriesDiv = document.getElementById('day-entries');
             dayEntriesDiv.appendChild(dayEntryDiv);
-
-            // Update lastAddedDate
-            lastAddedDate = defaultDate;
 
             // Scroll to the new entry
             dayEntryDiv.scrollIntoView({ behavior: 'smooth' });
@@ -323,6 +384,13 @@
         function getDayName(date) {
             const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
             return days[date.getDay()];
+        }
+
+        function updateDisplayDate(hiddenInput, dayNumber) {
+            const displayInput = hiddenInput.previousElementSibling;
+            const date = new Date(hiddenInput.value);
+            displayInput.value = formatDate(date);
+            updateDayName(displayInput, dayNumber);
         }
 
         function updateDayName(dateInput, dayNumber) {
@@ -356,7 +424,7 @@
 
             for (let i = 0; i < dayEntries.length; i++) {
                 const entry = dayEntries[i];
-                const dateInput = entry.querySelector('.date-input');
+                const dateInput = entry.querySelector('.date-input-display');
                 const [day, month, year] = dateInput.value.split('-');
                 const date = new Date(year, month - 1, day);
                 const startTime = entry.querySelector('.start-time-input').value;
@@ -458,6 +526,39 @@
             // Scroll to the summary
             summaryDiv.scrollIntoView({ behavior: 'smooth' });
         }
+
+        document.addEventListener('click', function (e) {
+            if (e.target && e.target.classList.contains('date-input-display')) {
+                e.target.nextElementSibling.showPicker();
+            }
+        });
+
+        function animateTitle() {
+            const title = document.getElementById('dynamic-title');
+            const colors = ['#3498db', '#2ecc71', '#e74c3c', '#f39c12', '#9b59b6'];
+            let colorIndex = 0;
+
+            setInterval(() => {
+                colorIndex = (colorIndex + 1) % colors.length;
+                title.style.color = colors[colorIndex];
+                title.style.textShadow = `
+                    0 1px 0 ${colors[(colorIndex + 1) % colors.length]},
+                    0 2px 0 ${colors[(colorIndex + 2) % colors.length]},
+                    0 3px 0 ${colors[(colorIndex + 3) % colors.length]},
+                    0 4px 0 ${colors[(colorIndex + 4) % colors.length]},
+                    0 5px 0 ${colors[(colorIndex + 0) % colors.length]},
+                    0 6px 1px rgba(0,0,0,.1),
+                    0 0 5px rgba(0,0,0,.1),
+                    0 1px 3px rgba(0,0,0,.3),
+                    0 3px 5px rgba(0,0,0,.2),
+                    0 5px 10px rgba(0,0,0,.25),
+                    0 10px 10px rgba(0,0,0,.2),
+                    0 20px 20px rgba(0,0,0,.15)
+                `;
+            }, 3000);
+        }
+
+        animateTitle();
     </script>
 
 </body>
