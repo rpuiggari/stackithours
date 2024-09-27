@@ -230,6 +230,13 @@
 
     <script>
         let dayCount = 0;
+        let lastAddedDate = null;
+        let lastEnteredValues = {
+            startTime: "06:00",
+            endTime: "16:00",
+            location: "",
+            lunchTaken: true
+        };
 
         document.getElementById('add-day').addEventListener('click', addDayEntry);
 
@@ -238,9 +245,28 @@
 
         function addDayEntry() {
             dayCount++;
-            const today = new Date();
-            const formattedDate = formatDate(today);
-            const dayName = getDayName(today);
+            let defaultDate;
+
+            if (dayCount === 1) {
+                defaultDate = getPreviousTuesday();
+            } else if (lastAddedDate) {
+                defaultDate = new Date(lastAddedDate);
+                defaultDate.setDate(defaultDate.getDate() + 1);
+
+                // Update lastEnteredValues with the values from the previous entry
+                const lastEntry = document.querySelector('.day-entry:last-child');
+                if (lastEntry) {
+                    lastEnteredValues.startTime = lastEntry.querySelector('.start-time-input').value;
+                    lastEnteredValues.endTime = lastEntry.querySelector('.end-time-input').value;
+                    lastEnteredValues.location = lastEntry.querySelector('.location-input').value;
+                    lastEnteredValues.lunchTaken = lastEntry.querySelector('.lunch-input').checked;
+                }
+            } else {
+                defaultDate = new Date();
+            }
+
+            const formattedDate = formatDate(defaultDate);
+            const dayName = getDayName(defaultDate);
             const dayEntryDiv = document.createElement('div');
             dayEntryDiv.className = 'day-entry';
             dayEntryDiv.id = 'day-entry-' + dayCount;
@@ -248,31 +274,43 @@
             <h3>Day ${dayCount} - ${dayName}</h3>
             <label>
                 Date:
-                <input type="date" class="date-input" value="${today.toISOString().split('T')[0]}" onchange="updateDayName(this, ${dayCount})">
+                <input type="text" class="date-input" value="${formattedDate}" onchange="updateDayName(this, ${dayCount})">
             </label>
             <label>
                 Start Time:
-                <input type="time" class="start-time-input" value="06:00">
+                <input type="time" class="start-time-input" value="${lastEnteredValues.startTime}">
             </label>
             <label>
                 End Time:
-                <input type="time" class="end-time-input" value="16:00">
+                <input type="time" class="end-time-input" value="${lastEnteredValues.endTime}">
             </label>
             <label>
                 Location:
-                <input type="text" class="location-input" placeholder="Enter the location">
+                <input type="text" class="location-input" value="${lastEnteredValues.location}" placeholder="Enter the location">
             </label>
             <label>
                 Took Lunch:
-                <input type="checkbox" class="lunch-input">
+                <input type="checkbox" class="lunch-input" ${lastEnteredValues.lunchTaken ? 'checked' : ''}>
             </label>
             <button class="remove-day" onclick="removeDayEntry(${dayCount})">Remove Day</button>
         `;
             const dayEntriesDiv = document.getElementById('day-entries');
             dayEntriesDiv.appendChild(dayEntryDiv);
 
+            // Update lastAddedDate
+            lastAddedDate = defaultDate;
+
             // Scroll to the new entry
             dayEntryDiv.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function getPreviousTuesday() {
+            const today = new Date();
+            const dayOfWeek = today.getDay();
+            const daysToSubtract = (dayOfWeek + 7 - 2) % 7 + 7;
+            const previousTuesday = new Date(today);
+            previousTuesday.setDate(today.getDate() - daysToSubtract);
+            return previousTuesday;
         }
 
         function formatDate(date) {
@@ -288,7 +326,8 @@
         }
 
         function updateDayName(dateInput, dayNumber) {
-            const date = new Date(dateInput.value);
+            const [day, month, year] = dateInput.value.split('-');
+            const date = new Date(year, month - 1, day);
             const dayName = getDayName(date);
             const h3 = dateInput.closest('.day-entry').querySelector('h3');
             h3.textContent = `Day ${dayNumber} - ${dayName}`;
@@ -318,20 +357,20 @@
             for (let i = 0; i < dayEntries.length; i++) {
                 const entry = dayEntries[i];
                 const dateInput = entry.querySelector('.date-input');
-                const dateValue = dateInput.value;
-                const date = new Date(dateValue);
+                const [day, month, year] = dateInput.value.split('-');
+                const date = new Date(year, month - 1, day);
                 const startTime = entry.querySelector('.start-time-input').value;
                 const endTime = entry.querySelector('.end-time-input').value;
                 const location = entry.querySelector('.location-input').value;
                 const lunchTaken = entry.querySelector('.lunch-input').checked;
 
-                if (!dateValue || !startTime || !endTime || !location) {
+                if (!dateInput.value || !startTime || !endTime || !location) {
                     alert('Please fill out all fields for each day.');
                     return;
                 }
 
-                const startDateTime = new Date(`${date.toDateString()} ${startTime}`);
-                const endDateTime = new Date(`${date.toDateString()} ${endTime}`);
+                const startDateTime = new Date(`${date.toDateString()} ${startTime} `);
+                const endDateTime = new Date(`${date.toDateString()} ${endTime} `);
 
                 let totalHours = (endDateTime - startDateTime) / (1000 * 60 * 60);
 
@@ -387,7 +426,7 @@
                     </tr>
                 </thead>
                 <tbody>
-        `;
+            `;
 
             records.forEach(record => {
                 const [year, month, day] = record.date.split('-');
