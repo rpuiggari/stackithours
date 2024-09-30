@@ -271,6 +271,27 @@
             padding-bottom: 50px;
             /* Adjust this value based on your footer's height */
         }
+
+        @keyframes bounce {
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-20px);
+            }
+        }
+
+        #dynamic-title .bounce-i {
+            display: inline-block;
+            animation: bounce 1s ease infinite;
+        }
+
+        #dynamic-title span {
+            display: inline-block;
+        }
     </style>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600&display=swap" rel="stylesheet">
 </head>
@@ -278,7 +299,7 @@
 <body>
 
     <header>
-        <img src="escudo2.jpeg" alt="Argentina Logo"
+        <img src="escudo3.png" alt="Argentina Logo"
             style="height: 130px; padding: 10px; background-color: transparent;">
         <h1 id="dynamic-title">Stack Invoice</h1>
     </header>
