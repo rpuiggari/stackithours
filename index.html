@@ -8,13 +8,15 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            background-image: url('download.jpeg');
-            /* Background image */
-            background-size: cover;
-            background-position: center;
             color: #FFFFFF;
             margin: 0;
             padding: 0;
+            min-height: 100vh;
+            background-image: url('download.jpeg');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            /* This keeps the background fixed */
         }
 
         header {
@@ -29,8 +31,10 @@
         header img {
             position: absolute;
             left: 20px;
-            top: 10px;
-            height: 60px;
+            top: 50%;
+            transform: translateY(-50%);
+            height: 80px;
+            /* Increased from 60px to 80px */
         }
 
         h1 {
@@ -71,7 +75,8 @@
         .container {
             padding: 20px;
             background-color: rgba(0, 0, 0, 0.6);
-            /* Semi-transparent overlay */
+            min-height: 100vh;
+            /* Ensure the container takes at least the full viewport height */
         }
 
         .rate-inputs,
@@ -132,7 +137,7 @@
         }
 
         .remove-day {
-            background-color: #c62828;
+            background-color: #690505;
             color: #FFFFFF;
             padding: 5px 10px;
             border: none;
@@ -186,7 +191,8 @@
             }
 
             header img {
-                height: 40px;
+                height: 60px;
+                /* Increased from 40px to 60px */
                 top: 50%;
                 transform: translateY(-50%);
             }
@@ -228,6 +234,21 @@
 
         .date-input-display {
             cursor: pointer;
+            width: calc(100% - 30px);
+            display: inline-block;
+        }
+
+        .date-input-hidden {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            opacity: 0;
+        }
+
+        .calendar-icon {
+            cursor: pointer;
+            vertical-align: middle;
+            margin-left: 5px;
         }
 
         footer {
@@ -257,7 +278,8 @@
 <body>
 
     <header>
-        <img src="escudo.jpeg" alt="Argentina Logo">
+        <img src="escudo2.jpeg" alt="Argentina Logo"
+            style="height: 130px; padding: 10px; background-color: transparent;">
         <h1 id="dynamic-title">Stack Invoice</h1>
     </header>
 
@@ -337,8 +359,9 @@
                 <h3>Day ${dayCount} - ${dayName}</h3>
                 <label>
                     Date:
-                    <input type="text" class="date-input-display" value="${formattedDate}" readonly>
-                    <input type="date" class="date-input-hidden" value="${isoDate}" style="display: none;" onchange="updateDisplayDate(this, ${dayCount})">
+                    <input type="text" class="date-input-display" value="${formattedDate}" oninput="updateHiddenDate(this, ${dayCount})">
+                    <input type="date" class="date-input-hidden" value="${isoDate}" onchange="updateDisplayDate(this, ${dayCount})">
+                    <span class="calendar-icon" onclick="showDatePicker(${dayCount})">📅</span>
                 </label>
                 <label>
                     Start Time:
@@ -527,11 +550,28 @@
             summaryDiv.scrollIntoView({ behavior: 'smooth' });
         }
 
-        document.addEventListener('click', function (e) {
-            if (e.target && e.target.classList.contains('date-input-display')) {
-                e.target.nextElementSibling.showPicker();
+        function showDatePicker(dayCount) {
+            const hiddenInput = document.querySelector(`#day-entry-${dayCount} .date-input-hidden`);
+            if (hiddenInput) {
+                if (hiddenInput.type === 'date') {
+                    hiddenInput.showPicker();
+                } else {
+                    // Fallback for browsers that don't support showPicker
+                    hiddenInput.focus();
+                }
             }
-        });
+        }
+
+        function updateHiddenDate(displayInput, dayNumber) {
+            const hiddenInput = displayInput.nextElementSibling;
+            const [day, month, year] = displayInput.value.split('-');
+            const date = new Date(year, month - 1, day);
+
+            if (!isNaN(date.getTime())) {
+                hiddenInput.value = date.toISOString().split('T')[0];
+                updateDayName(displayInput, dayNumber);
+            }
+        }
 
         function animateTitle() {
             const title = document.getElementById('dynamic-title');
